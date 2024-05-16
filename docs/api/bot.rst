@@ -1,22 +1,37 @@
-###
-Bot
-###
+import requests
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-Bot instance can be created from :code:`aiogram.Bot` (:code:`from aiogram import Bot`) and
-you can't use methods without instance of bot with configured token.
+# CoinGecko API uchun URL
+api_url = "https://api.coingecko.com/api/v3/coins/bitcoin"
 
-This class has aliases for all methods and named in :code:`lower_camel_case`.
+# Bot tokeni
+TOKEN = "7030647754:AAGQ6BZiqmlzhBX4OGPa0ERAgkedoWadLt0"
 
-For example :code:`sendMessage` named :code:`send_message` and has the same specification with all class-based methods.
+# "/start" buyrug'ini qabul qiladigan funksiya
+def start(update, context):
+    update.message.reply_text("Assalomu alaykum! Bot ishlashga tayyor 😊")
 
-.. warning::
+# "coin" so'zi kelsa, kriptovalyuta ma'lumotlarini olish
+def get_crypto_data(update, context):
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        update.message.reply_text(data)
+    else:
+        update.message.reply_text("Kriptovalyuta ma'lumotlarini olishda xatolik yuz berdi 😔")
 
-    A full list of methods can be found in the appropriate section of the documentation
+def main():
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
 
-.. autoclass:: aiogram.client.bot.Bot
-    :members: __init__,token,id,context,me,download_file,download
-    :show-inheritance:
-    :member-order: bysource
-    :special-members: __init__
-    :undoc-members: True
-    :noindex:
+    # "/start" buyrug'ini ushlab turish
+    dp.add_handler(CommandHandler("start", start))
+    
+    # "coin" so'zi kelsa, kriptovalyuta ma'lumotlarini olish
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, get_crypto_data))
+
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
